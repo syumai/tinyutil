@@ -4,7 +4,7 @@
 
 // Copied from: https://github.com/golang/go/blob/go1.18.3/src/net/http/roundtrip_js.go
 
-package httputil
+package net_http
 
 import (
 	"errors"

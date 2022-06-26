@@ -1,11 +1,15 @@
 package httputil
 
-import "net/http"
+import (
+	"net/http"
+
+	"github.com/syumai/tinyutil/internal/net_http"
+)
 
 type Client struct{}
 
 func (*Client) Do(req *http.Request) (*http.Response, error) {
-	return (*Transport).RoundTrip(nil, req)
+	return (*net_http.Transport).RoundTrip(nil, req)
 }
 
 func (c *Client) Get(url string) (resp *http.Response, err error) {
@@ -16,8 +20,8 @@ func (c *Client) Get(url string) (resp *http.Response, err error) {
 	return c.Do(req)
 }
 
-var defaultClient = &Client{}
+var DefaultClient = &Client{}
 
 func Get(url string) (resp *http.Response, err error) {
-	return defaultClient.Get(url)
+	return DefaultClient.Get(url)
 }
