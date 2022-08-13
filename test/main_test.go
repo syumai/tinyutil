@@ -1,6 +1,7 @@
 package test
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"io"
@@ -29,8 +30,8 @@ func TestGet(t *testing.T) {
 package main
 
 import (
+	"fmt"
 	"io"
-	"os"
 
 	"github.com/syumai/tinyutil/httputil"
 )
@@ -43,7 +44,11 @@ func main() {
 		panic(err)
 	}
 	defer resp.Body.Close()
-	io.Copy(os.Stdout, resp.Body)
+	b, err := io.ReadAll(resp.Body)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println(string(b))
 }
 `, srv.URL)
 
@@ -53,14 +58,17 @@ func main() {
 	}
 	defer os.RemoveAll(tmpdir)
 
-	srcFile, err := os.CreateTemp(tmpdir, "")
+	srcFile, err := os.CreateTemp(tmpdir, "*.go")
 	if err != nil {
 		t.Fatal(err)
 	}
 	defer os.Remove(srcFile.Name())
-	defer srcFile.Close()
 
 	_, err = io.Copy(srcFile, strings.NewReader(src))
+	if err != nil {
+		t.Fatal(err)
+	}
+	err = srcFile.Close()
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -77,5 +85,16 @@ func main() {
 
 	ctx, cancel = context.WithTimeout(context.Background(), 1*time.Second)
 	defer cancel()
-	runCmd := exec.CommandContext(ctx, "deno", "run", "-A")
+	runCmd := exec.CommandContext(ctx, "deno", "run", "-A", "./run_test.js", wasmPath)
+	outBuf := &bytes.Buffer{}
+	runCmd.Stdout = outBuf
+	err = runCmd.Run()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	gotBody := strings.TrimSpace(outBuf.String())
+	if want != gotBody {
+		t.Fatalf("want: %s, got: %s", want, gotBody)
+	}
 }
