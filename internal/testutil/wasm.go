@@ -46,7 +46,7 @@ func RunWasm(t *testing.T, src string) (out io.Reader) {
 
 	ctx, cancel = context.WithTimeout(context.Background(), 1*time.Second)
 	defer cancel()
-	runCmd := exec.CommandContext(ctx, "deno", "run", "-A", "./run_test.js", wasmPath)
+	runCmd := exec.CommandContext(ctx, "deno", "run", "-A", "../testutil/lib/run_test.js", wasmPath)
 
 	var outBuf, errBuf bytes.Buffer
 	runCmd.Stdout = &outBuf
