@@ -3,6 +3,7 @@ package testutil
 import (
 	"bytes"
 	"context"
+	"errors"
 	"io"
 	"os"
 	"os/exec"
@@ -48,15 +49,12 @@ func RunWasm(t *testing.T, src string) (out io.Reader) {
 	defer cancel()
 	runCmd := exec.CommandContext(ctx, "deno", "run", "-A", "../testutil/lib/run_test.js", wasmPath)
 
-	var outBuf, errBuf bytes.Buffer
-	runCmd.Stdout = &outBuf
-	runCmd.Stderr = &errBuf
-	err = runCmd.Run()
+	output, err = runCmd.Output()
 	if err != nil {
+		if exitErr := (*exec.ExitError)(nil); errors.As(err, &exitErr) {
+			t.Fatalf("err: %v\noutput: %s", exitErr, string(exitErr.Stderr))
+		}
 		t.Fatal(err)
 	}
-	if errBuf.Len() != 0 {
-		t.Fatal(errBuf.String())
-	}
-	return &outBuf
+	return bytes.NewReader(output)
 }
