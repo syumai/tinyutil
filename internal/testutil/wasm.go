@@ -39,9 +39,9 @@ func RunWasm(t *testing.T, src string) (out io.Reader) {
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 	buildCmd := exec.CommandContext(ctx, "tinygo", "build", "-o", wasmPath, "-target", "wasm", srcFile.Name())
-	err = buildCmd.Run()
+	output, err := buildCmd.CombinedOutput()
 	if err != nil {
-		t.Fatal(err)
+		t.Fatalf("err: %v\noutput: %s", err, string(output))
 	}
 
 	ctx, cancel = context.WithTimeout(context.Background(), 1*time.Second)
