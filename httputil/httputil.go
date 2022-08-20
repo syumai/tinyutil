@@ -3,6 +3,8 @@ package httputil
 import (
 	"io"
 	"net/http"
+	"net/url"
+	"strings"
 
 	"github.com/syumai/tinyutil/internal/net_http"
 )
@@ -30,6 +32,10 @@ func (c *Client) Post(url, contentType string, body io.Reader) (resp *http.Respo
 	return c.Do(req)
 }
 
+func (c *Client) PostForm(url string, data url.Values) (resp *http.Response, err error) {
+	return c.Post(url, "application/x-www-form-urlencoded", strings.NewReader(data.Encode()))
+}
+
 var DefaultClient = &Client{}
 
 func Get(url string) (resp *http.Response, err error) {
@@ -38,4 +44,8 @@ func Get(url string) (resp *http.Response, err error) {
 
 func Post(url, contentType string, body io.Reader) (resp *http.Response, err error) {
 	return DefaultClient.Post(url, contentType, body)
+}
+
+func PostForm(url string, data url.Values) (resp *http.Response, err error) {
+	return DefaultClient.PostForm(url, data)
 }

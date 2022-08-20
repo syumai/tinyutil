@@ -121,3 +121,71 @@ func main() {
 		t.Fatalf("want: %s, got: %s", wantResBody, gotBody)
 	}
 }
+
+func TestPostForm(t *testing.T) {
+	const (
+		wantResBody     = "want res body"
+		wantReqBody     = "bar=baz&foo=quux"
+		wantContentType = "application/x-www-form-urlencoded"
+	)
+
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+		if req.Method != http.MethodPost {
+			t.Fatalf("want: %s, got: %s", http.MethodPost, req.Method)
+		}
+		b, err := io.ReadAll(req.Body)
+		if err != nil {
+			t.Fatal(err)
+		}
+		gotReqBody := string(b)
+		if gotReqBody != wantReqBody {
+			t.Fatalf("want: %s, got: %s", wantReqBody, gotReqBody)
+		}
+		gotContentType := req.Header.Get("Content-Type")
+		if gotContentType != wantContentType {
+			t.Fatalf("want: %s, got: %s", wantContentType, gotContentType)
+		}
+		w.Write([]byte(wantResBody))
+	}))
+	defer srv.Close()
+
+	src := fmt.Sprintf(`
+package main
+
+import (
+	"fmt"
+	"io"
+	"net/url"
+
+	"github.com/syumai/tinyutil/httputil"
+)
+
+func main() {
+	data := url.Values{
+		"bar": []string{"baz"},
+		"foo": []string{"quux"},
+	}
+	resp, err := httputil.PostForm(%q, data)
+	if err != nil {
+		panic(err)
+	}
+	defer resp.Body.Close()
+	b, err := io.ReadAll(resp.Body)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println(string(b))
+}
+`, srv.URL)
+
+	out := testutil.RunWasm(t, src)
+	b, err := io.ReadAll(out)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	gotBody := strings.TrimSpace(string(b))
+	if wantResBody != gotBody {
+		t.Fatalf("want: %s, got: %s", wantResBody, gotBody)
+	}
+}
