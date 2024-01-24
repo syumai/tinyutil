@@ -92,7 +92,8 @@ func (t *Transport) RoundTrip(req *http.Request) (*http.Response, error) {
 		}
 	}
 
-	fetchPromise := js.Global().Call("fetch", req.URL.String(), opt)
+	fetch := js.Global().Get("fetch")
+	fetchPromise := fetch.Invoke(req.URL.String(), opt)
 	var (
 		respCh           = make(chan *http.Response, 1)
 		errCh            = make(chan error, 1)
