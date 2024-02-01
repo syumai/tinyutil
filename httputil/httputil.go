@@ -36,6 +36,14 @@ func (c *Client) PostForm(url string, data url.Values) (resp *http.Response, err
 	return c.Post(url, "application/x-www-form-urlencoded", strings.NewReader(data.Encode()))
 }
 
+func (c *Client) Head(url string) (resp *http.Response, err error) {
+	req, err := http.NewRequest("HEAD", url, nil)
+	if err != nil {
+		return nil, err
+	}
+	return c.Do(req)
+}
+
 var DefaultClient = &Client{}
 
 func Get(url string) (resp *http.Response, err error) {
@@ -48,4 +56,8 @@ func Post(url, contentType string, body io.Reader) (resp *http.Response, err err
 
 func PostForm(url string, data url.Values) (resp *http.Response, err error) {
 	return DefaultClient.PostForm(url, data)
+}
+
+func Head(url string) (resp *http.Response, err error) {
+	return DefaultClient.Head(url)
 }

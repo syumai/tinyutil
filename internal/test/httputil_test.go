@@ -189,3 +189,48 @@ func main() {
 		t.Fatalf("want: %s, got: %s", wantResBody, gotBody)
 	}
 }
+
+func TestHead(t *testing.T) {
+	const (
+		wantHeaderKey   = "want header key"
+		wantHeaderValue = "want header value"
+	)
+
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+		if req.Method != http.MethodHead {
+			t.Fatalf("want: %s, got: %s", http.MethodHead, req.Method)
+		}
+		w.Header().Set(wantHeaderKey, wantHeaderValue)
+	}))
+	defer srv.Close()
+
+	src := fmt.Sprintf(`
+package main
+
+import (
+	"fmt"
+
+	"github.com/syumai/tinyutil/httputil"
+)
+
+func main() {
+	resp, err := httputil.Head(%q)
+	if err != nil {
+		panic(err)
+	}
+	defer resp.Body.Close()
+	fmt.Println(resp.Header.Get(%q))
+}
+`, srv.URL, wantHeaderKey)
+
+	out := testutil.RunWasm(t, src)
+	b, err := io.ReadAll(out)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	gotHeaderValue := strings.TrimSpace(string(b))
+	if wantHeaderValue != gotHeaderValue {
+		t.Fatalf("want: %s, got: %s", wantHeaderValue, gotHeaderValue)
+	}
+}
