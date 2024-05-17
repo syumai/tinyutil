@@ -9,7 +9,9 @@ import (
 	"github.com/syumai/tinyutil/internal/net_http"
 )
 
-type Client struct{}
+type Client struct {
+	Transport http.RoundTripper
+}
 
 func (*Client) Do(req *http.Request) (*http.Response, error) {
 	return (*net_http.Transport).RoundTrip(nil, req)
@@ -36,7 +38,9 @@ func (c *Client) PostForm(url string, data url.Values) (resp *http.Response, err
 	return c.Post(url, "application/x-www-form-urlencoded", strings.NewReader(data.Encode()))
 }
 
-var DefaultClient = &Client{}
+var DefaultClient = &Client{
+	Transport: &net_http.Transport{},
+}
 
 func Get(url string) (resp *http.Response, err error) {
 	return DefaultClient.Get(url)
