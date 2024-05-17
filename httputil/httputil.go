@@ -13,8 +13,8 @@ type Client struct {
 	Transport http.RoundTripper
 }
 
-func (*Client) Do(req *http.Request) (*http.Response, error) {
-	return (*net_http.Transport).RoundTrip(nil, req)
+func (c *Client) Do(req *http.Request) (*http.Response, error) {
+	return c.Transport.RoundTrip(req)
 }
 
 func (c *Client) Get(url string) (resp *http.Response, err error) {
